@@ -1,0 +1,81 @@
+# =========================
+# Secrets and environment
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# .NET build artifacts
+# =========================
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rtifacts/
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# Visual Studio Code
+# =========================
+.vscode/
+
+# =========================
+# Rider / JetBrains
+# =========================
+.idea/
+*.sln.iml
+
+# =========================
+# Logs and temporary files
+# =========================
+*.log
+logs/
+[Tt]emp/
+[Tt]mp/
+*.tmp
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+*.snupkg
+
+# =========================
+# OS generated files
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# =========================
+# Certificates and private keys
+# =========================
+*.pfx
+*.p12
+*.key
+*.pem
+!*.public.pem
+
+# =========================
+# Local databases and backups
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+
+# =========================
+# Publish output
+# =========================
+publish/
