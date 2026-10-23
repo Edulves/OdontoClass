@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using OdontoClass.Data.ResultPattern.Extensions;
 using OdontoClass.DTOs.Requests;
 using OdontoClass.DTOs.Responses;
 using OdontoClass.Models;
 using OdontoClass.Services.Interfaces;
 using OdontoClass.Utils;
+using System.Text.Encodings.Web;
 
 namespace OdontoClass.Controllers;
 
@@ -81,5 +84,22 @@ public class AuthController(IAuthService _authService,UserManager<User> _userMan
         }
 
         return (await _authService.ChangePasswordAsync(request)).ToIActionResult(this);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+    {
+        return (await _authService.ForgotPasswordAsync(request)).ToIActionResult(this);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        return (await _authService.ResetPasswordAsync(request)).ToIActionResult(this);
     }
 }

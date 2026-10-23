@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using OdontoClass.Data.ResultPattern.Base;
@@ -148,6 +149,58 @@ public class AuthService(UserManager<User> _userManager, SignInManager<User> _si
                 "Algo deu errado ao tentar alterar a sua senha, tente novamente em alguns minutos");
 
         return ResultPattern<string>.Success("Password atualizado com sucesso!");
+    }
+
+    public async Task<ResultPattern<string>> ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+
+        if (user is null)
+            return ResultPattern<string>.Success("Se o e-mail estiver cadastrado, você receberá as instruções para recuperar sua senha.");
+
+        string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        var resetUrl = QueryHelpers.AddQueryString(
+            $"{_configuration["App:PublicFrontendUrl"]}/recuperar-senha",
+            new Dictionary<string, string?>
+            {
+                ["email"] = user.Email,
+                ["token"] = token
+            });
+
+        //await _emailService.SendAsync(
+        //    user.Email!,
+        //    "Recuperação de senha - OdontoClass",
+        //    $"""
+        //        <p>Recebemos uma solicitação para redefinir sua senha.</p>
+        //        <p>
+        //            <a href="{HtmlEncoder.Default.Encode(resetUrl)}">
+        //                Redefinir minha senha
+        //            </a>
+        //        </p>
+        //        <p>Se você não solicitou a recuperação, ignore este e-mail.</p>
+        //    """);
+
+        return ResultPattern<string>.Success("Se o e-mail estiver cadastrado, você receberá as instruções para recuperar sua senha.");
+    }
+
+    public async Task<ResultPattern<string>> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+
+        if (user is null)
+            return ResultPattern<string>.Failure("Não foi possível redefinir a senha.");
+
+        var result = await _userManager.ResetPasswordAsync(
+            user,
+            request.Token,
+            request.NewPassword);
+
+        if (!result.Succeeded)
+            return ResultPattern<string>.Failure(
+            String.Join(Environment.NewLine, result.Errors.Select(e => $"- code={e.Code}, Description: {e.Description};")), "Algo deu errado ao tentar redefinir a sua senha tente novamente em instantes");
+
+        return ResultPattern<string>.Success("Senha redefinida com sucesso.");
     }
 
     private async Task<string> GenerateJwtTokenAsync(User user)

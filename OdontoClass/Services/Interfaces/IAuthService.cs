@@ -11,5 +11,7 @@ public interface IAuthService
     Task<ResultPattern<TokenrResponse>> LoginAsync(LoginRequest request);
     Task<ResultPattern<MeResponse>> MeAsync(string userId);
     Task<ResultPattern<string>> ChangePasswordAsync(ChangePasswordRequest request);
+    Task<ResultPattern<string>> ForgotPasswordAsync(ForgotPasswordRequest request);
+    Task<ResultPattern<string>> ResetPasswordAsync(ResetPasswordRequest request);
 }
 
