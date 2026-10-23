@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using OdontoClass.Data;
+using OdontoClass.Data.Context;
 using OdontoClass.Models;
 using OdontoClass.Services;
 using OdontoClass.Services.Interfaces;
@@ -28,8 +28,8 @@ builder.Services.AddResend(options =>
 });
 
 builder.Services.AddTransient<IResend, ResendClient>();
-
 builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
@@ -142,11 +142,12 @@ builder.Services.AddOpenApi(options =>
                         "Bearer", context.Document)] = []
                 });
         }
-
+         
         return Task.CompletedTask;
     });
 });
 
+builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 
 
@@ -159,10 +160,21 @@ app.MapScalarApiReference(options =>
     options.AddPreferredSecuritySchemes("Bearer");
 });
 
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler();
+}
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 

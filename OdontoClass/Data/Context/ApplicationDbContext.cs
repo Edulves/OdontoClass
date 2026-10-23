@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OdontoClass.Models;
 
-namespace OdontoClass.Data;
+namespace OdontoClass.Data.Context;
 
 public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {

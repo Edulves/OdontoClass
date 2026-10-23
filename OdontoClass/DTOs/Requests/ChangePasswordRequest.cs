@@ -7,4 +7,7 @@ public sealed record ChangePasswordRequest(
     string CurrentPassword,
 
     [Required, MinLength(8)]
-    string NewPassword);
+    string NewPassword,
+    
+    [Required]
+    string UserId);
