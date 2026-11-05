@@ -195,22 +195,30 @@ namespace OdontoClass.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ScheduleId"));
 
-                    b.Property<DateOnly>("DateOfSchedule")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTime>("DateOfSchedule")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("date_of_schedule");
 
                     b.Property<bool>("Deleted")
                         .HasColumnType("boolean")
                         .HasColumnName("deleted");
 
-                    b.Property<string>("PacienteInfo")
+                    b.Property<string>("PacientInfo")
                         .HasColumnType("text")
-                        .HasColumnName("paciente_info");
+                        .HasColumnName("pacient_info");
 
-                    b.Property<string>("PacienteName")
+                    b.Property<string>("PacientName")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("paciente_name");
+                        .HasColumnName("pacient_name");
 
                     b.Property<string>("Procedure")
                         .IsRequired()
@@ -221,29 +229,20 @@ namespace OdontoClass.Migrations
                         .HasColumnType("text")
                         .HasColumnName("subject");
 
+                    b.Property<int>("WorkSpaceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("work_space_id");
+
                     b.HasKey("ScheduleId")
-                        .HasName("pk_schedules");
+                        .HasName("pk_schedule");
 
-                    b.ToTable("schedules", (string)null);
-                });
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_schedule_created_by_user_id");
 
-            modelBuilder.Entity("OdontoClass.Models.ScheduleUser", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer")
-                        .HasColumnName("user_id");
+                    b.HasIndex("WorkSpaceId")
+                        .HasDatabaseName("ix_schedule_work_space_id");
 
-                    b.Property<int>("ScheduleId")
-                        .HasColumnType("integer")
-                        .HasColumnName("schedule_id");
-
-                    b.HasKey("UserId", "ScheduleId")
-                        .HasName("pk_schedule_users");
-
-                    b.HasIndex("ScheduleId")
-                        .HasDatabaseName("ix_schedule_users_schedule_id");
-
-                    b.ToTable("schedule_users", (string)null);
+                    b.ToTable("schedule", (string)null);
                 });
 
             modelBuilder.Entity("OdontoClass.Models.User", b =>
@@ -337,6 +336,56 @@ namespace OdontoClass.Migrations
                     b.ToTable("asp_net_users", (string)null);
                 });
 
+            modelBuilder.Entity("OdontoClass.Models.WorkSpace", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_work_space");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_work_space_created_by_user_id");
+
+                    b.ToTable("work_space", (string)null);
+                });
+
+            modelBuilder.Entity("OdontoClass.Models.WorkSpaceUser", b =>
+                {
+                    b.Property<int>("WorkSpaceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("work_space_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("WorkSpaceId", "UserId")
+                        .HasName("pk_work_space_user");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_work_space_user_user_id");
+
+                    b.ToTable("work_space_user", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
@@ -394,35 +443,70 @@ namespace OdontoClass.Migrations
                         .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
-            modelBuilder.Entity("OdontoClass.Models.ScheduleUser", b =>
-                {
-                    b.HasOne("OdontoClass.Models.Schedule", "Schedule")
-                        .WithMany("ScheduleUsers")
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("fk_schedule_users_schedules_schedule_id");
-
-                    b.HasOne("OdontoClass.Models.User", "User")
-                        .WithMany("ScheduleUsers")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("fk_schedule_users_users_user_id");
-
-                    b.Navigation("Schedule");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("OdontoClass.Models.Schedule", b =>
                 {
-                    b.Navigation("ScheduleUsers");
+                    b.HasOne("OdontoClass.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_schedule_users_created_by_user_id");
+
+                    b.HasOne("OdontoClass.Models.WorkSpace", "WorkSpace")
+                        .WithMany("Schedules")
+                        .HasForeignKey("WorkSpaceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_schedule_work_space_work_space_id");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("WorkSpace");
+                });
+
+            modelBuilder.Entity("OdontoClass.Models.WorkSpace", b =>
+                {
+                    b.HasOne("OdontoClass.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_space_users_created_by_user_id");
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("OdontoClass.Models.WorkSpaceUser", b =>
+                {
+                    b.HasOne("OdontoClass.Models.User", "User")
+                        .WithMany("WorkSpaceMembers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_space_user_users_user_id");
+
+                    b.HasOne("OdontoClass.Models.WorkSpace", "WorkSpace")
+                        .WithMany("WorkSpaceMembers")
+                        .HasForeignKey("WorkSpaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_space_user_work_space_work_space_id");
+
+                    b.Navigation("User");
+
+                    b.Navigation("WorkSpace");
                 });
 
             modelBuilder.Entity("OdontoClass.Models.User", b =>
                 {
-                    b.Navigation("ScheduleUsers");
+                    b.Navigation("WorkSpaceMembers");
+                });
+
+            modelBuilder.Entity("OdontoClass.Models.WorkSpace", b =>
+                {
+                    b.Navigation("Schedules");
+
+                    b.Navigation("WorkSpaceMembers");
                 });
 #pragma warning restore 612, 618
         }

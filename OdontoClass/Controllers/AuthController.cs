@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using OdontoClass.Data.ResultPattern.Extensions;
-using OdontoClass.DTOs.Requests;
-using OdontoClass.DTOs.Responses;
+using OdontoClass.DTOs.Requests.Auth;
+using OdontoClass.DTOs.Responses.Auth;
 using OdontoClass.Models;
 using OdontoClass.Services.Interfaces;
 using OdontoClass.Utils;
@@ -15,7 +15,7 @@ namespace OdontoClass.Controllers;
 
 [ApiController]
 [Route("auth")]
-public class AuthController(IAuthService _authService,UserManager<User> _userManager) : ControllerBase
+public class AuthController(IAuthService _authService) : ControllerBase
 {
     [AllowAnonymous]
     [HttpPost("register")]
@@ -54,16 +54,7 @@ public class AuthController(IAuthService _authService,UserManager<User> _userMan
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> MeAsync()
     {
-        var userId = _userManager.GetUserId(User);
-
-        if (userId == null)
-        {
-            var problem = new ProblemDetailsOdontoClass("Usuário não existe", "Usuário não existe");
-
-            return StatusCode(StatusCodes.Status401Unauthorized, problem);
-        }
-
-        return (await _authService.MeAsync(userId)).ToIActionResult(this);
+        return (await _authService.MeAsync()).ToIActionResult(this);
     }
 
     [Authorize]
@@ -74,22 +65,13 @@ public class AuthController(IAuthService _authService,UserManager<User> _userMan
     [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
-        var userId = _userManager.GetUserId(User);
-
-        if (userId == null)
-        {
-            var problem = new ProblemDetailsOdontoClass("Usuário não existe", "Usuário não existe");
-
-            return StatusCode(StatusCodes.Status401Unauthorized, problem);
-        }
-
         return (await _authService.ChangePasswordAsync(request)).ToIActionResult(this);
     }
 
     [AllowAnonymous]
     [HttpPost("forgot-password")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+    public async Task<IActionResult> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         return (await _authService.ForgotPasswordAsync(request)).ToIActionResult(this);
     }
@@ -98,7 +80,7 @@ public class AuthController(IAuthService _authService,UserManager<User> _userMan
     [HttpPost("reset-password")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
-    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    public async Task<IActionResult> ResetPasswordAsync(ResetPasswordRequest request)
     {
         return (await _authService.ResetPasswordAsync(request)).ToIActionResult(this);
     }

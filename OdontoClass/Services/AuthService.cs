@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using OdontoClass.Data.ResultPattern.Base;
-using OdontoClass.DTOs.Requests;
-using OdontoClass.DTOs.Responses;
+using OdontoClass.DTOs.Requests.Auth;
+using OdontoClass.DTOs.Responses.Auth;
 using OdontoClass.Models;
 using OdontoClass.Services.Interfaces;
+using OdontoClass.Utils;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -14,7 +14,7 @@ using System.Text.Encodings.Web;
 
 namespace OdontoClass.Services;
 
-public class AuthService(UserManager<User> _userManager, SignInManager<User> _signInManager, IConfiguration _configuration, IEmailService _emailService) : IAuthService
+public class AuthService(UserManager<User> _userManager, SignInManager<User> _signInManager, IConfiguration _configuration, IEmailService _emailService, ICurrentUserService _currentUserService) : IAuthService
 {
     public async Task<ResultPattern<string>> RegisterAsync(RegisterRequest request)
     {
@@ -119,8 +119,13 @@ public class AuthService(UserManager<User> _userManager, SignInManager<User> _si
         return ResultPattern<TokenrResponse>.Success(tokenResult);
     }
 
-    public async Task<ResultPattern<MeResponse>> MeAsync(string userId)
+    public async Task<ResultPattern<MeResponse>> MeAsync()
     {
+        var userId = _currentUserService.UserId;
+
+        if (userId == null)
+            return ResultPattern<MeResponse>.Failure("Usuário não existe", "Usuário não existe", StatusCodes.Status401Unauthorized);
+
         var user = await _userManager.FindByIdAsync(userId);
 
         if (user is null || user.IsDeleted)

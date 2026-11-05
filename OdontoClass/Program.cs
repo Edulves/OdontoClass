@@ -27,9 +27,13 @@ builder.Services.AddResend(options =>
             "A chave da API do Resend não foi configurada.");
 });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddTransient<IResend, ResendClient>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICurrentUserService,CurrentUserService>();
+
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)

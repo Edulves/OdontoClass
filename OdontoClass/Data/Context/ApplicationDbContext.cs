@@ -9,9 +9,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options){}
 
-    public DbSet<Schedule> Schedules => Set<Schedule>();
-
-    public DbSet<ScheduleUser> ScheduleUsers => Set<ScheduleUser>();
+    public DbSet<Schedule> Schedule => Set<Schedule>();
+    public DbSet<WorkSpace> WorkSpace => Set<WorkSpace>();
+    public DbSet<WorkSpaceUser> WorkSpaceUser => Set<WorkSpaceUser>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -39,36 +39,50 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, i
         {
             entity.HasKey(s => s.ScheduleId);
 
-            entity.Property(s => s.PacienteName)
+            entity.Property(s => s.PacientName)
                 .IsRequired();
 
             entity.Property(s => s.Procedure)
                 .IsRequired();
 
-            entity.Property(s => s.PacienteInfo)
+            entity.Property(s => s.PacientInfo)
                 .IsRequired(false);
 
             entity.Property(s => s.Subject)
                 .IsRequired(false);
+
+            entity.HasOne(x => x.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(x => x.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.WorkSpace)
+                .WithMany(x => x.Schedules)
+                .HasForeignKey(x => x.WorkSpaceId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        builder.Entity<ScheduleUser>(entity =>
+        builder.Entity<WorkSpaceUser>(entity =>
         {
-            entity.HasKey(su => new
+            entity.HasKey(x => new
             {
-                su.UserId,
-                su.ScheduleId
+                x.WorkSpaceId,
+                x.UserId
             });
 
-            entity.HasOne(su => su.User)
-                .WithMany(su => su.ScheduleUsers)
-                .HasForeignKey(su => su.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(x => x.WorkSpace)
+                .WithMany(x => x.WorkSpaceMembers)
+                .HasForeignKey(x => x.WorkSpaceId);
 
-            entity.HasOne(su => su.Schedule)
-                .WithMany(s => s.ScheduleUsers)
-                .HasForeignKey(su => su.ScheduleId)
-                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(x => x.User)
+                .WithMany(x => x.WorkSpaceMembers)
+                .HasForeignKey(x => x.UserId);
         });
+
+        builder.Entity<WorkSpace>()
+            .HasOne(x => x.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(x => x.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
