@@ -121,12 +121,12 @@ public class AuthService(UserManager<User> _userManager, SignInManager<User> _si
 
     public async Task<ResultPattern<MeResponse>> MeAsync()
     {
-        var currentUser = _currentUserService.GetCurrentUser();
+        var userId = _currentUserService.UserId;
 
-        if (!currentUser.IsSuccess)
-            return ResultPattern<MeResponse>.Failure(currentUser.Detail, "Não autorizado!", StatusCodes.Status401Unauthorized);
+        if (userId == null)
+            return ResultPattern<MeResponse>.Failure("Usuário não existe", "Usuário não existe", StatusCodes.Status401Unauthorized);
 
-        var user = await _userManager.FindByIdAsync(currentUser.Value.ToString());
+        var user = await _userManager.FindByIdAsync(userId);
 
         if (user is null || user.IsDeleted)
             return ResultPattern<MeResponse>.Failure("Não autorizado!", "Não autorizado!", StatusCodes.Status401Unauthorized);
